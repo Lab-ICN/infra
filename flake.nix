@@ -1,5 +1,5 @@
 {
-  description = "A Nix-flake-based development environment";
+  description = "A Nix-flake-based development environment for Terraform, Packer, and Nomad";
 
   inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.*.tar.gz";
 
@@ -21,6 +21,7 @@
       default = pkgs.mkShell {
         packages = with pkgs; [
           terraform
+          terraform-ls
         ];
       };
     });
