@@ -38,6 +38,7 @@
         # FIXME: DONT use latest for tag
         name: "{{ git.repo }}:latest"
         source: build
+        force_source: true
         build:
           path: "{{ home }}/{{ git.repo }}"
           pull: true
