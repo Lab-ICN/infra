@@ -3,7 +3,7 @@
   remote_user: "{{ WEB_PROFILE.USER }}"
   vars:
     home: "/home/{{ WEB_PROFILE.USER }}"
-    port:
+    _port:
       app: "{{ WEB_PROFILE.APP_PORT }}"
       host: "{{ WEB_PROFILE.HOST_PORT }}"
     git:
@@ -38,5 +38,5 @@
       community.docker.docker_container:
         name: "{{ git.repo }}"
         image: "{{ git.repo }}:latest"
-        ports: ["{{ port.host }}:{{ port.app }}"]
+        ports: ["{{ _port.host }}:{{ _port.app }}"]
         restart_policy: always
