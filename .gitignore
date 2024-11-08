@@ -37,6 +37,4 @@ override.tf.json
 terraform.rc
 
 # Ansible vault files
-.secrets.enc
-vault.yaml
-vault.yml
+*.enc
