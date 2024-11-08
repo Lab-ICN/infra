@@ -1,0 +1,12 @@
+GITHUB:
+    USERNAME: string
+    PAT: string
+WEB_PROFILE:
+    HOSTS: string
+    USER: string
+    APP_PORT: integer
+    HOST_PORT: integer
+    REPOSITORY:
+        OWNER: string
+        NAME: string
+        BRANCH: string
