@@ -10,3 +10,8 @@ WEB_PROFILE:
         OWNER: string
         NAME: string
         BRANCH: string
+PROXMOX:
+    AUTH_USER: string # ansible connection user
+    PVE_USER: string # pve user
+    API_TOKEN_ID: string
+    API_TOKEN: string
