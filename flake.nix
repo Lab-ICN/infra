@@ -1,7 +1,7 @@
 {
   description = "A Nix-flake-based development environment for Terraform, Packer, and Nomad";
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.*.tar.gz";
+  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.0.tar.gz";
 
   outputs = {
     self,
@@ -20,6 +20,7 @@
     devShells = forEachSupportedSystem ({pkgs}: {
       default = pkgs.mkShell {
         packages = with pkgs; [
+          ansible
           terraform
           terraform-ls
         ];
