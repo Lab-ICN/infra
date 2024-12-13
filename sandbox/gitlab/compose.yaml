@@ -1,0 +1,39 @@
+---
+networks:
+  proxy:
+
+services:
+  traefik:
+    image: traefik:v2.11
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.network=proxy"
+      - "--entryPoints.web.address=:80"
+      - "--providers.docker.exposedByDefault=false"
+    ports:
+      - 3000:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+
+  gitlab:
+    image: gitlab/gitlab-ce:17.4.6-ce.0
+    container_name: gitlab
+    restart: unless-stopped
+    hostname: 'localhost'
+    shm_size: '256m'
+    ports:
+      - 2424:22
+    networks:
+      - proxy
+    volumes:
+      - ./gitlab.rb:/etc/gitlab/config/gitlab.rb:ro
+      - ./logs:/var/log/gitlab
+      - ./data:/var/opt/gitlab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitlab.entrypoints=web"
+      - "traefik.http.routers.gitlab.rule=PathPrefix(`/`)"
+      - "traefik.http.services.gitlab.loadbalancer.server.port=80"
