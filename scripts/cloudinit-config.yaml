@@ -1,0 +1,54 @@
+hostname: ubuntu-24.04-cloudimg
+manage_etc_hosts: true
+fqdn: ubuntu-24.04-cloudimg
+
+users:
+  - name: member
+    gecos: Mirza Ganteng
+    groups: [users, docker]
+    lock_passwd: false
+    hashed_passwd: \$6\$rounds=500000\$BV50oap49nGpA9n6\$9C7tVql3KYOFayja4o/hGQl.smvizsLgQHljivbWLvLBIbqCBNjQ07TIIShZ6.smXyWYAhAuBj8.FqylnyH.e/
+    shell: /bin/bash
+    ssh_import_id:
+      - gh:mirzahilmi
+      - gh:AkbarFikri
+    sudo: ALL=(ALL) NOPASSWD:ALL
+  - default
+
+chpasswd:
+  expire: true
+
+package_upgrade: true
+packages:
+  - qemu-guest-agent
+  - curl
+
+write_files:
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "default-address-pools": [
+          {
+            "base": "192.168.0.0/16",
+            "size": 24
+          }
+        ]
+      }
+    owner: root:root
+    permissions: "0644"
+
+bootcmd:
+  - [
+      cloud-init-per,
+      once,
+      enable-qemu-guest-agent,
+      systemctl,
+      enable,
+      qemu-guest-agent,
+    ]
+
+runcmd:
+  - curl -fsSL https://get.docker.com -o /tmp/install-docker.sh
+  - sh /tmp/install-docker.sh
+  - systemctl start docker
+  - systemctl enable docker
