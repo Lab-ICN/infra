@@ -1,7 +1,7 @@
 {
-  description = "A Nix-flake-based development environment for Terraform, Packer, and Nomad";
+  description = "A Nix-flake-based development environment for Terraform";
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.0.tar.gz";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
   outputs = {
     self,
