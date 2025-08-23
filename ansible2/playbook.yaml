@@ -1,0 +1,38 @@
+---
+- name: Configure target hosts
+  hosts: localhost
+  vars_files: [config.yaml]
+
+  tasks:
+    - name: Add hosts dynamically
+      loop: "{{ inventory.hosts }}"
+      ansible.builtin.add_host:
+        name: "{{ item.ip }}"
+        ansible_user: "{{ item.username }}"
+        groups: all
+
+- hosts: all
+  become: true
+  gather_facts: false
+  vars_files: [config.yaml]
+  tasks:
+    - name: Gather network facts
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+
+    - name: Set static IP configuration
+      register: netplan_updated
+      ansible.builtin.template:
+        src: netplan-config.j2
+        dest: "{{ netplanConfigFile }}"
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        target_ip: "{{ inventory_hostname }}"
+
+    - name: Apply netplan configuration
+      ansible.builtin.command: netplan apply
+      when: netplan_updated.changed
+

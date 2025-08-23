@@ -1,0 +1,14 @@
+inventory:
+  hosts:
+    - ip: example.com
+      username: user
+    - ip: example2.com
+      username: user
+
+netplanConfigFile: /etc/netplan/01-netcfg.yaml
+gateway4: 192.168.1.1
+nameservers:
+  - 8.8.8.8
+  - 8.8.4.4
+searchAddresses:
+  - example.com

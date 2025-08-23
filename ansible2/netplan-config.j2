@@ -1,0 +1,22 @@
+# This file is managed by Ansible
+network:
+  version: 2
+  ethernets:
+    {{ ansible_default_ipv4.interface }}:
+      dhcp4: false
+      addresses:
+        - {{ target_ip }}/25
+      gateway4: {{ gateway4 }}
+      nameservers:
+        addresses: 
+{% for nameserver in nameservers %}
+          - {{ nameserver }}
+{% endfor %}
+        search:
+{% for searchAddress in searchAddresses %}
+          - {{ searchAddress }}
+{% endfor %}
+      routes:
+        - to: 127.0.0.53/32
+          via: 127.0.0.1
+          metric: 100
