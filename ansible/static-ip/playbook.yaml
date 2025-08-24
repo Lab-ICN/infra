@@ -21,6 +21,16 @@
         gather_subset:
           - network
 
+    - name: Remove existing netplan configurations
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/etc/netplan/50-cloud-init.yaml"
+        - "/etc/netplan/00-installer-config.yaml"
+        - "/etc/netplan/01-netcfg.yaml"
+      ignore_errors: yes
+
     - name: Set static IP configuration
       register: netplan_updated
       ansible.builtin.template:
