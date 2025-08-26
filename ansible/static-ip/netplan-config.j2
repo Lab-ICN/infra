@@ -6,7 +6,9 @@ network:
       dhcp4: false
       addresses:
         - {{ target_ip }}/25
-      gateway4: {{ gateway4 }}
+      routes:
+        - to: default
+          via: {{ gateway4 }}
       nameservers:
         addresses: 
 {% for nameserver in nameservers %}
