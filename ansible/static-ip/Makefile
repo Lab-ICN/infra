@@ -1,2 +1,3 @@
 ansible:
-	ansible-playbook ./playbook.yaml -K
+	ANSIBLE_HOST_KEY_CHECKING=False \
+		ansible-playbook ./playbook.yaml -K

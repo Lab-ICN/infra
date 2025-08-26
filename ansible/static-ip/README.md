@@ -19,6 +19,7 @@ This project uses Ansible to configure static IP addresses on target hosts. It d
 3.  **Configure:**
     *   Copy `config.yaml.example` to `config.yaml`.
     *   Edit `config.yaml` to specify the target hosts, IP addresses, gateway, nameservers, and the path to the Netplan configuration file.
+    *   Optionally, specify a `newIP` for each host if you want to change the IP address of the target host. The playbook will automatically wait for the host to become available on the new IP after applying the network configuration.
 
 4.  **Run the playbook:**
     You can run the playbook using the provided Makefile:
@@ -33,3 +34,12 @@ This project uses Ansible to configure static IP addresses on target hosts. It d
     ```
 
     This will configure the network settings on the specified hosts.
+
+## How It Works
+
+The playbook dynamically adds hosts based on the configuration file and then applies network settings using Netplan. If a `newIP` is specified for a host, the playbook will:
+
+1. Configure the host with the new IP address
+2. Apply the Netplan configuration
+3. Wait for the host to become available on the new IP address
+4. Continue with the configuration process using the new IP

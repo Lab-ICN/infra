@@ -1,8 +1,10 @@
 inventory:
   hosts:
-    - ip: example.com
+    - ip: 192.168.1.1
+      newIP: 192.168.1.100
       username: user
-    - ip: example2.com
+    - ip: 192.168.1.2
+      newIP: 192.168.1.101
       username: user
 
 netplanConfigFile: /etc/netplan/01-netcfg.yaml
