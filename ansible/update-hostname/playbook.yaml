@@ -1,0 +1,24 @@
+---
+- name: Configure target hosts
+  hosts: localhost
+  vars_files: [config.yaml]
+
+  tasks:
+    - name: Add hosts dynamically
+      loop: "{{ inventory.hosts }}"
+      ansible.builtin.add_host:
+        name: "{{ item.ip }}"
+        ansible_host: "{{ item.ip }}"
+        ansible_user: "{{ item.username }}"
+        groups: all
+        ext_hostname: "{{ item.newHostname }}"
+
+- hosts: all
+  become: true
+  gather_facts: false
+  vars_files: [config.yaml]
+
+  tasks:
+    - name: Update hostname
+      ansible.builtin.hostname:
+        name: "{{ ext_hostname }}"
