@@ -1,0 +1,120 @@
+---
+- name: Setup Mini Internet Platform
+  hosts: all
+  become: true
+  vars:
+    repo_url: "https://github.com/nsg-ethz/mini_internet_project.git"
+    repo_dest: "/home/member/mini_internet_project"
+    platform_dir: "{{ repo_dest }}/platform"
+    config_dir: "{{ platform_dir }}/config"
+    server_ip: "{{ ansible_host }}"
+    ssh_url: "{{ ansible_host }}"
+    webserver_hostname: "{{ ansible_host }}"
+    webserver_acme_mail: "noreply@example.com" 
+    timezone_str: "Asia/Jakarta"
+
+  pre_tasks:
+    - name: apt update (Debian/Ubuntu)
+      apt:
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+  tasks:
+    - name: Pastikan baris "Set probe_interfaces false" ada di /etc/sudo.conf
+      lineinfile:
+        path: /etc/sudo.conf
+        line: "Set probe_interfaces false"
+        state: present
+        create: true
+        backup: true
+
+    - name: Install paket dasar
+      apt:
+        name:
+          - git
+          - openvswitch-switch
+          - docker.io
+        state: present
+
+    - name: Install linux-modules-extra utk kernel berjalan (jika ada)
+      apt:
+        name: "linux-modules-extra-{{ ansible_kernel }}"
+        state: present
+      register: extra_mods
+      failed_when: false
+      ignore_errors: true
+
+    - name: Clone / update mini_internet_project
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ repo_dest }}"
+        version: "HEAD"
+        update: true
+
+    - name: Pastikan direktori /var/run/netns ada
+      file:
+        path: /var/run/netns
+        state: directory
+        mode: "0755"
+
+    # ===================== EDIT variables.sh =====================
+    - name: Set WEBSERVER_HOSTNAME di variables.sh
+      lineinfile:
+        path: "{{ config_dir }}/variables.sh"
+        regexp: '^(#\s*)?WEBSERVER_HOSTNAME=".*"$'
+        line: 'WEBSERVER_HOSTNAME="{{ webserver_hostname }}"'
+        backrefs: false
+
+    - name: Set WEBSERVER_TZ di variables.sh
+      lineinfile:
+        path: "{{ config_dir }}/variables.sh"
+        regexp: '^(#\s*)?WEBSERVER_TZ=".*"$'
+        line: 'WEBSERVER_TZ="{{ timezone_str }}"'
+        backrefs: false
+
+    - name: Set SSH_URL di variables.sh
+      lineinfile:
+        path: "{{ config_dir }}/variables.sh"
+        regexp: '^(#\s*)?SSH_URL=".*"$'
+        line: 'SSH_URL="{{ ssh_url }}"'
+        backrefs: false
+
+    - name: (Opsional) set WEBSERVER_ACME_MAIL (biarkan default kalau tak perlu)
+      lineinfile:
+        path: "{{ config_dir }}/variables.sh"
+        regexp: '^(#\s*)?WEBSERVER_ACME_MAIL=".*"$'
+        line: 'WEBSERVER_ACME_MAIL="{{ webserver_acme_mail }}"'
+        backrefs: false
+      when: webserver_acme_mail is defined and webserver_acme_mail|length > 0
+
+    # ===================== BUILD DOCKER IMAGES =====================
+    - name: Build all docker images locally
+      shell: |
+        set -euo pipefail
+        images=(base base_supervisor host router ixp ssh measurement dns switch matrix vpn vlc hostm routinator krill webserver history)
+        for image in "${images[@]}"; do
+          echo "🔨 Building $image ..."
+          docker build --tag="d_${image}" "docker_images/${image}/"
+        done
+      args:
+        chdir: "{{ platform_dir }}"
+        executable: /bin/bash
+      register: build_result
+      changed_when: build_result.rc == 0
+
+    # ===================== JALANKAN STARTUP =====================
+    - name: Jalankan startup.sh sekali (pakai marker)
+      shell: |
+        set -euo pipefail
+        ./startup.sh
+      args:
+        chdir: "{{ platform_dir }}"
+        creates: "{{ repo_dest }}/.startup_ran"
+        executable: /bin/bash
+      register: startup_result
+      changed_when: startup_result.rc == 0
+
+    - name: Buat state untuk tanda startup.sh sudah di jalankan
+      file:
+        path: "{{ repo_dest }}/.startup_ran"
+        state: touch
