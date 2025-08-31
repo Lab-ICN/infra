@@ -4,16 +4,16 @@
   vars_files: [config.yaml]
 
   tasks:
-    - name: Add hosts dynamically
+    - name: Add hosts target
       loop: "{{ inventory.hosts }}"
       ansible.builtin.add_host:
         name: "{{ item.ip }}"
         ansible_host: "{{ item.ip }}"
         ansible_user: "{{ item.username }}"
         new_ip: "{{ item.newIP | default(omit) }}"
-        groups: all
+        groups: target
 
-- hosts: all
+- hosts: target
   become: true
   gather_facts: false
   vars_files: [config.yaml]
@@ -45,24 +45,9 @@
       vars:
         target_ip: "{{ new_ip }}"
 
-    - name: Apply netplan configuration asynchronously
-      ansible.builtin.command: nohup netplan apply &
-      async: 10
+    - name: Apply netplan configuration
+      command: netplan apply
+      async: 60
       poll: 0
-      changed_when: true
-      when: netplan_updated.changed
 
-    - name: Wait for new IP connection
-      when: netplan_updated.changed and new_ip is defined
-      block:
-        - name: Wait for SSH port to be available on new IP
-          ansible.builtin.wait_for:
-            host: "{{ new_ip }}"
-            port: 22
-            delay: 5
-
-        - name: Wait for connection with new IP
-          ansible.builtin.wait_for_connection:
-            connect_timeout: 20
-            sleep: 5
-            delay: 5
+    # TODO: should verify the new ip actually configured
