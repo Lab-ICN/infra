@@ -1,0 +1,5 @@
+- name: Setup SISOP students
+  hosts: praktikum
+  become: yes
+  roles:
+    - sisop_students

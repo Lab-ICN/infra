@@ -1,0 +1,21 @@
+practice_group: "practice"
+student_password_plain: "ayojoinicn"
+nims_file: "{{ inventory_dir }}/nims.txt"
+
+docker_without_sudo: true
+install_build_tools: true
+
+sudoers_file: "/etc/sudoers.d/practice-lab"
+sudo_commands:
+  - /bin/chmod
+  - /bin/chown
+  - /usr/sbin/insmod
+  - /usr/sbin/rmmod
+  - /usr/bin/gcc
+  - /bin/dmesg
+  - /usr/bin/tail
+  - /bin/journalctl
+  - /bin/bash
+  - /usr/sbin/useradd
+  - /usr/sbin/adduser
+  - /usr/bin/docker

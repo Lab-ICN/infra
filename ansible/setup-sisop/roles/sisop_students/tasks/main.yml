@@ -1,0 +1,74 @@
+- name: Read NIM list from file
+  ansible.builtin.set_fact:
+    nims_raw: "{{ lookup('file', nims_file).splitlines() }}"
+
+- name: Build student usernames from NIM list
+  ansible.builtin.set_fact:
+    students: "{{ nims_raw | map('trim') | reject('equalto','') | map('regex_replace', '^', 'student_') | list }}"
+
+- name: Ensure practice group exists
+  ansible.builtin.group:
+    name: "{{ practice_group }}"
+    state: present
+
+- name: Ensure docker group exists
+  ansible.builtin.group:
+    name: docker
+    state: present
+  when: docker_without_sudo | bool
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install build tools (gcc, make, etc)
+  ansible.builtin.apt:
+    name: build-essential
+    state: present
+  when: install_build_tools | bool
+
+- name: Ensure docker service running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: yes
+  when: docker_without_sudo | bool
+
+- name: Ensure each student's primary group exists
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ students }}"
+
+- name: Create student users and set password
+  ansible.builtin.user:
+    name: "{{ item }}"
+    group: "{{ item }}"
+    groups: >-
+      {{
+        ([practice_group] + (docker_without_sudo | bool | ternary(['docker'], [])))
+      }}
+    append: true
+    shell: /bin/bash
+    create_home: true
+    password: "{{ student_password_plain | password_hash('sha512') }}"
+    update_password: always
+    state: present
+  loop: "{{ students }}"
+
+- name: Install sudoers rule for practice group
+  ansible.builtin.template:
+    src: sudoers_practice.j2
+    dest: "{{ sudoers_file }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: Ensure docker socket permissions allow docker group
+  ansible.builtin.file:
+    path: /var/run/docker.sock
+    group: docker
+    mode: "0660"
+  when: docker_without_sudo | bool
