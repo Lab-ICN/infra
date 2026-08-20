@@ -28,6 +28,11 @@
     state: present
   when: install_build_tools | bool
 
+- name: Install Docker Engine
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    
 - name: Ensure docker service running
   ansible.builtin.service:
     name: docker

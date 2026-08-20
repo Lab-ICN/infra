@@ -2,6 +2,7 @@
 
 ## Prerequisite
 - Ansible
+- python3-passlib
 - SSH access to VM(s)
 - If using SSH password: install sshpass (macOS: `brew install sshpass`)
 
